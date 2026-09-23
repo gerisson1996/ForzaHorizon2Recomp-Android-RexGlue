@@ -49,7 +49,11 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          dkp-pacman -S --needed --noconfirm cmake ninja clang git
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends cmake ninja-build clang git ca-certificates
+          cmake --version
+          ninja --version
+          clang --version
 
       - name: Host codegen for FH2
         shell: bash
