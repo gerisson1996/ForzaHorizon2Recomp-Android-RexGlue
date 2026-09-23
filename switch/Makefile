@@ -14,10 +14,10 @@ APP_AUTHOR := gerisson1996 / ReXGlue port
 APP_VERSION := 0.0.1
 
 ARCH := -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
-CFLAGS := -g -Wall -O2 -ffunction-sections $(ARCH) $(DEFINES)
+CFLAGS := -g -Wall -O2 -ffunction-sections $(ARCH) $(DEFINES) -I$(DEVKITPRO)/libnx/include
 CXXFLAGS := $(CFLAGS) -fno-rtti -std=gnu++20
 ASFLAGS := -g $(ARCH)
-LDFLAGS = -specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
+LDFLAGS = -specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -L$(DEVKITPRO)/libnx/lib -Wl,-Map,$(notdir $*.map)
 
 LIBS := -lnx
 LIBDIRS := $(DEVKITPRO)/libnx
