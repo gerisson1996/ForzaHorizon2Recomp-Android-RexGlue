@@ -26,6 +26,17 @@ jobs:
           echo "DEVKITA64=${DEVKITA64:-$DEVKITPRO/devkitA64}"
           export DEVKITA64="${DEVKITA64:-$DEVKITPRO/devkitA64}"
           echo "$DEVKITA64/bin" >> "$GITHUB_PATH"
+          # devkitPro's devkita64 image may contain the compiler packages
+          # without exporting devkitA64 on PATH in non-login CI shells.
+          if ! command -v aarch64-none-elf-g++ >/dev/null 2>&1; then
+            export PATH="$DEVKITA64/bin:$PATH"
+          fi
+          if ! command -v aarch64-none-elf-g++ >/dev/null 2>&1; then
+            dkp-pacman -Syu --noconfirm
+            dkp-pacman -S --needed --noconfirm switch-dev
+            export PATH="$DEVKITA64/bin:$PATH"
+          fi
+          command -v aarch64-none-elf-g++
           aarch64-none-elf-g++ --version
           test -f "$DEVKITPRO/libnx/include/switch.h"
 
@@ -33,6 +44,8 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
+          export DEVKITA64="${DEVKITA64:-$DEVKITPRO/devkitA64}"
+          export PATH="$DEVKITA64/bin:$PATH"
           make -C switch -j2
           mkdir -p dist
           cp switch/ForzaHorizon2Recomp-Switch.nro dist/
