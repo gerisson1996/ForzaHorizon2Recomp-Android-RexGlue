@@ -20,7 +20,7 @@ ASFLAGS := -g $(ARCH)
 LDFLAGS = -specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 LIBS := -lnx
-LIBDIRS := $(PORTLIBS) $(LIBNX)
+LIBDIRS := $(PORTLIBS) $(DEVKITPRO)/libnx
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 export OUTPUT := $(CURDIR)/$(TARGET)
