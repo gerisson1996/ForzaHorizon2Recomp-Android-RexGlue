@@ -38,7 +38,12 @@ jobs:
           fi
           command -v aarch64-none-elf-g++
           aarch64-none-elf-g++ --version
+          # libnx is not guaranteed to be present in the minimal devkita64 image.
+          if [[ ! -f "$DEVKITPRO/libnx/include/switch.h" ]]; then
+            dkp-pacman -S --needed --noconfirm switch-dev
+          fi
           test -f "$DEVKITPRO/libnx/include/switch.h"
+          ls -l "$DEVKITPRO/libnx/include/switch.h"
 
       - name: Build Switch bootstrap NRO
         shell: bash
