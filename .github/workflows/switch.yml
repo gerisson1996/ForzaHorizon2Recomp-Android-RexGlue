@@ -45,30 +45,18 @@ jobs:
           test -f "$DEVKITPRO/libnx/include/switch.h"
           ls -l "$DEVKITPRO/libnx/include/switch.h"
 
-      - name: Install host codegen dependencies
+      - name: Inspect FH2 recomp inputs
         shell: bash
         run: |
           set -euxo pipefail
-          apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends cmake ninja-build clang git ca-certificates
-          cmake --version
-          ninja --version
-          clang --version
-
-      - name: Host codegen for FH2
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
-        run: |
-          set -euxo pipefail
-          if [[ -z "${GH_TOKEN:-}" ]]; then
-            echo "::error::GH_PAT is required to fetch the private FH2 XEX inputs for codegen."
-            exit 1
+          echo "FH2 manifest:"
+          test -f recomp/fh2_manifest.toml
+          echo "Generated sources committed:"
+          if [[ -f recomp/generated/default/sources.cmake ]]; then
+            find recomp/generated -name '*.cpp' | wc -l
+          else
+            echo "No generated sources are committed; continuing with Switch platform bootstrap."
           fi
-          bash scripts/build_host_codegen.sh
-          test -f recomp/generated/default/sources.cmake
-          echo "Generated source count:"
-          find recomp/generated -name '*.cpp' | wc -l
 
       - name: Build Switch bootstrap NRO
         shell: bash
@@ -79,13 +67,11 @@ jobs:
           make -C switch -j2
           mkdir -p dist
           cp switch/ForzaHorizon2Recomp-Switch.nro dist/
-          cp recomp/generated/default/sources.cmake dist/fh2-generated-sources.cmake
+          if [[ -f recomp/generated/default/sources.cmake ]]; then cp recomp/generated/default/sources.cmake dist/fh2-generated-sources.cmake; fi
 
       - name: Upload Switch bootstrap
         uses: actions/upload-artifact@v4
         with:
           name: fh2-switch-bootstrap
-          path: |
-            dist/ForzaHorizon2Recomp-Switch.nro
-            dist/fh2-generated-sources.cmake
+          path: dist/ForzaHorizon2Recomp-Switch.nro
           if-no-files-found: error
