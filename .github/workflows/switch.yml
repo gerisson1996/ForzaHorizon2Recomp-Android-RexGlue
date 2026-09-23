@@ -1,0 +1,43 @@
+name: Switch port bootstrap
+
+on:
+  push:
+    branches: [switch-port]
+  workflow_dispatch:
+
+jobs:
+  switch-bootstrap:
+    runs-on: ubuntu-latest
+    container:
+      image: devkitpro/devkita64:latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Verify devkitA64/libnx toolchain
+        shell: bash
+        run: |
+          set -euxo pipefail
+          echo "DEVKITPRO=$DEVKITPRO"
+          echo "DEVKITA64=$DEVKITA64"
+          aarch64-none-elf-g++ --version
+          test -f "$DEVKITPRO/libnx/include/switch.h"
+
+      - name: Build Switch bootstrap NRO
+        shell: bash
+        run: |
+          set -euxo pipefail
+          make -C switch -j2
+          mkdir -p dist
+          cp switch/ForzaHorizon2Recomp-Switch.nro dist/
+
+      - name: Upload Switch bootstrap
+        uses: actions/upload-artifact@v4
+        with:
+          name: fh2-switch-bootstrap
+          path: dist/ForzaHorizon2Recomp-Switch.nro
+          if-no-files-found: error
