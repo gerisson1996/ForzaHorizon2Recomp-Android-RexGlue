@@ -45,6 +45,27 @@ jobs:
           test -f "$DEVKITPRO/libnx/include/switch.h"
           ls -l "$DEVKITPRO/libnx/include/switch.h"
 
+      - name: Install host codegen dependencies
+        shell: bash
+        run: |
+          set -euxo pipefail
+          dkp-pacman -S --needed --noconfirm cmake ninja clang git
+
+      - name: Host codegen for FH2
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          set -euxo pipefail
+          if [[ -z "${GH_TOKEN:-}" ]]; then
+            echo "::error::GH_PAT is required to fetch the private FH2 XEX inputs for codegen."
+            exit 1
+          fi
+          bash scripts/build_host_codegen.sh
+          test -f recomp/generated/default/sources.cmake
+          echo "Generated source count:"
+          find recomp/generated -name '*.cpp' | wc -l
+
       - name: Build Switch bootstrap NRO
         shell: bash
         run: |
@@ -54,10 +75,13 @@ jobs:
           make -C switch -j2
           mkdir -p dist
           cp switch/ForzaHorizon2Recomp-Switch.nro dist/
+          cp recomp/generated/default/sources.cmake dist/fh2-generated-sources.cmake
 
       - name: Upload Switch bootstrap
         uses: actions/upload-artifact@v4
         with:
           name: fh2-switch-bootstrap
-          path: dist/ForzaHorizon2Recomp-Switch.nro
+          path: |
+            dist/ForzaHorizon2Recomp-Switch.nro
+            dist/fh2-generated-sources.cmake
           if-no-files-found: error
